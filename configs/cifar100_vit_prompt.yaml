@@ -1,0 +1,21 @@
+dataset: IMBALANCECIFAR
+first_split_size: 10
+other_split_size: 10
+schedule:
+- 10
+schedule_type: cosine
+batch_size: 64
+optimizer: Adam
+lr: 0.005
+momentum: 0.9
+weight_decay: 0
+model_type: zoo_old
+model_name: vit_pt_imnet
+vis_flag: False
+max_task: 10
+dataroot: data
+workers: 8
+validation: False
+train_aug: True
+rand_split: True
+freeze_encoder: False
