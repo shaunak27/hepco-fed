@@ -2,7 +2,7 @@
 
 [Paper Link](https://arxiv.org/pdf/2306.09970.pdf) | [Talk](https://neurips.cc/virtual/2023/79009)
 
-This paper contains code for our paper <b>HePCo: Continual Adaptation of Foundation Models for Federated Learning</b>. HePCo is a parameter-efficient approach to continually adapt foundation models at the edge for federated learning.
+This repository contains code for our paper <b>HePCo: Continual Adaptation of Foundation Models for Federated Learning</b>. HePCo is a parameter-efficient approach to continually adapt foundation models at the edge for federated learning.
 
 <p align="center">
     <img src="assets/method-2.png" width="100%" class="center"/>
