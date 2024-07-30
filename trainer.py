@@ -12,6 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import time
 import copy
+import wandb
 os.environ["WANDB_SILENT"] = "true"
 from models.zoo_old import Generator
 from tqdm import tqdm
@@ -51,6 +52,7 @@ class Trainer:
         self.top_k = 1
         self.lambda_prox = args.lambda_prox
         self.lambda_mse = args.lambda_mse
+        wandb.init(project="hepco_tmlr",name=args.wandb_name)
 
         if args.dataset == 'CIFAR10':
             Dataset = dataloaders.iCIFAR10
@@ -581,6 +583,7 @@ class Trainer:
                     print('Last acc:')
                     server_temp_table['lastacc'].append(self.server_task_eval(i-1, all_tasks=True))
                 
+                wandb.log({'server_acc':server_temp_table['acc'][-1],'server_plastic':server_temp_table['plastic'][-1]})
                 for mkey in self.metric_keys:
                     save_file = server_temp_dir + mkey + '.csv'
                     np.savetxt(save_file, np.asarray(server_temp_table[mkey]), delimiter=",", fmt='%.2f')

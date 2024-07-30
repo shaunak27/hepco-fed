@@ -8,15 +8,26 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from utils.schedulers import CosineSchedule
 
+class TripletLoss(torch.nn.Module):
+    def __init__(self, margin=1.0):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, anchor, positive, negative):
+        distance_positive = (anchor - positive).pow(2).sum(1) * 1.0e3  # scale up
+        distance_negative = (anchor - negative).pow(2).sum(1) * 1.0e1  # scale up
+        # print(distance_positive)
+        losses = torch.relu((distance_positive - distance_negative).sum() + self.margin)
+        return losses.mean()
 
 class DualPrompt(LWF):
 
     def __init__(self, learner_config):
         self.prompt_param = learner_config['prompt_param']  ## : prompt param are supplied as cl args
         super(DualPrompt, self).__init__(learner_config)  
-
+        self.triplet_loss = TripletLoss(margin=1)
     # update model - add dual prompt loss   
-    def update_model(self, inputs, targets, target_KD = None, loss_type = None, server_model = None, lambda_prox = 0.01):
+    def update_model(self, inputs, targets, target_KD = None, loss_type = None, server_model = None, lambda_prox = 0.01,prev_task_model = None):
 
         # logits
         try :
@@ -25,19 +36,27 @@ class DualPrompt(LWF):
             print(inputs.shape,inputs.device)
         tasks_till_now = [j for sub in self.tasks_real[:self.task_count+1] for j in sub]
         
+        total_loss = torch.zeros((1,), requires_grad=True).cuda()
+        penalty = torch.tensor(0., requires_grad=True).cuda()
+        if loss_type == "fedprox":
+            for (n,w), (n_t,w_t) in zip(server_model.named_parameters(),self.model.named_parameters()):
+                if 'prompt' in n or 'last' in n:
+                    penalty += torch.pow(torch.norm(w.detach() - w_t), 2)
+            total_loss += (lambda_prox / 2.) * penalty
+        elif loss_type == "triplet":
+            with torch.no_grad():
+                server_logits, _ = server_model(inputs, train=True)
+                prev_task_logits, _ = prev_task_model(inputs, train=True)
+            trip_loss = self.triplet_loss(logits, server_logits, prev_task_logits)
+            total_loss += trip_loss
+        # ce loss
         logits = logits[:,tasks_till_now]
 
         # standard ce
         logits[:,:self.last_valid_out_dim] = -float('inf')
         dw_cls = self.dw_k[-1 * torch.ones(targets.size()).long()]
-        total_loss = self.criterion(logits, targets.long(), dw_cls)
-        penalty = torch.tensor(0., requires_grad=True).cuda()
-        if loss_type == "fedprox":
-                for (n,w), (n_t,w_t) in zip(server_model.named_parameters(),self.model.named_parameters()):
-                    if 'prompt' in n or 'last' in n:
-                        penalty += torch.pow(torch.norm(w.detach() - w_t), 2)
-                total_loss += (lambda_prox / 2.) * penalty
-        # ce loss
+        total_loss += self.criterion(logits, targets.long(), dw_cls)
+        
         total_loss = total_loss + self.mu * prompt_loss.sum()
         # step
         self.optimizer.zero_grad()

@@ -90,7 +90,7 @@ class LWF(NormalNN):
                         y_hat = None
 
                     # model update - training data
-                    loss, loss_class, loss_distill, output= self.update_model(x, y, y_hat,loss_type = loss_type, server_model = server.model if server is not None else None,lambda_prox = lambda_prox)
+                    loss, loss_class, loss_distill, output= self.update_model(x, y, y_hat,loss_type = loss_type, server_model = server.model if server is not None else None,lambda_prox = lambda_prox,prev_server=prev_server if prev_server is not None else None)
 
                     # measure elapsed time
                     batch_time.update(batch_timer.toc()) 
