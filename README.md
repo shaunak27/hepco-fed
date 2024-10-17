@@ -1,6 +1,6 @@
 # Continual Adaptation of Vision Transformers for Federated Learning
 
-[Paper Link](https://arxiv.org/pdf/2306.09970.pdf) | [NeurIPSW-2023 Talk](https://neurips.cc/virtual/2023/79009)
+[TMLR 2024 Paper Link](https://arxiv.org/pdf/2306.09970.pdf) | [NeurIPSW-2023 Talk](https://neurips.cc/virtual/2023/79009)
 
 This repository contains code for our paper <b>HePCo: Continual Adaptation of Foundation Models for Federated Learning</b> which appeared at <b>Transactions on Machine Learning Research (TMLR) 2024</b>. HePCo is a parameter-efficient approach to continually adapt foundation models at the edge for federated learning.
 
